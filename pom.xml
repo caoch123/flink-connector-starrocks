@@ -174,235 +174,40 @@ limitations under the License.
             </exclusions>
         </dependency>
     </dependencies>
+    <distributionManagement>
+        <repository>
+            <id>releases</id>
+            <name>releases</name>
+            <url>http://10.74.20.125:8081/repository/maven-releases/</url>
+            <uniqueVersion>true</uniqueVersion>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>snapshots</name>
+            <url>http://10.74.20.125:8081/repository/maven-snapshots/</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+
+
     <build>
         <plugins>
+
             <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
-                <configuration>
-                    <!-->not reuse forked jvm, so that each unit test will run in separate jvm. to avoid singleton confict<-->
-                    <reuseForks>false</reuseForks>
-                    <argLine>
-                        -javaagent:${settings.localRepository}/org/jmockit/jmockit/1.48/jmockit-1.48.jar
-                    </argLine>
-                    <!-- Set maven to use independent class loading to avoid unit test failure due to the early shutdown of the JVM -->
-                    <useSystemClassLoader>false</useSystemClassLoader>
-                </configuration>
-            </plugin>
-            <plugin>
+                <!-- 指定maven编译的jdk版本 -->
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
                 <configuration>
-                    <source>1.8</source>
-                    <target>1.8</target>
-                    <encoding>${file_encoding}</encoding>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <version>3.0.0</version>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>./target/</directory>
-                            <includes>
-                                <include>${artifactId}*.jar</include>
-                            </includes>
-                            <followSymlinks>false</followSymlinks>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <outputDirectory>./target/</outputDirectory>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.2.1</version>
-                <executions>
-                    <!-- Run shade goal on package phase -->
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <createDependencyReducedPom>true</createDependencyReducedPom>
-                            <relocations>
-                                <relocation>
-                                    <pattern>com.alibaba</pattern>
-                                    <shadedPattern>com.starrocks.shade.com.alibaba</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.apache.http</pattern>
-                                    <shadedPattern>com.starrocks.shade.org.apache.http</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.apache.commons</pattern>
-                                    <shadedPattern>com.starrocks.shade.org.apache.commons</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.apache.arrow</pattern>
-                                    <shadedPattern>com.starrocks.shade.org.apache.arrow</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>io.netty</pattern>
-                                    <shadedPattern>com.starrocks.shade.io.netty</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.google.flatbuffers</pattern>
-                                    <shadedPattern>com.starrocks.shade.com.google.flatbuffers</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>com.fasterxml.jackson.core</pattern>
-                                    <shadedPattern>com.starrocks.shade.com.fasterxml.jackson.core</shadedPattern>
-                                </relocation>
-                            </relocations>
-                            <artifactSet>
-                                <includes>
-                                    <include>commons-codec:commons-codec</include>
-                                    <include>commons-io:commons-io</include>
-                                    <include>commons-logging:*</include>
-                                    <include>org.apache.httpcomponents:httpclient</include>
-                                    <include>org.apache.httpcomponents:httpcore</include>
-                                    <include>com.alibaba:fastjson</include>
-                                    <include>mysql:mysql-connector-java</include>
-                                    <include>com.starrocks:starrocks-thrift-sdk</include>
-                                    <include>org.apache.arrow:arrow-vector</include>
-                                    <include>org.apache.arrow:arrow-memory-netty</include>
-                                    <include>org.apache.arrow:arrow-memory-core</include>
-                                    <include>org.apache.arrow:arrow-format</include>
-                                    <include>io.netty:netty-buffer</include>
-                                    <include>io.netty:netty-common</include>
-                                    <include>com.google.flatbuffers:flatbuffers-java</include>
-                                    <include>com.fasterxml.jackson.core:jackson-annotations</include>
-                                    <include>com.fasterxml.jackson.core:jackson-core</include>
-                                    <include>com.fasterxml.jackson.core:jackson-databind</include>
-                                </includes>
-                            </artifactSet>
-                            <filters>
-                                <filter>
-                                    <!-- Do not copy the signatures in the META-INF folder.
-                                    Otherwise, this might cause SecurityExceptions when using the JAR. -->
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <configLocation>checkstyle.xml</configLocation>
-                    <encoding>UTF-8</encoding>
-                    <consoleOutput>true</consoleOutput>
-                    <failsOnError>true</failsOnError>
-                    <linkXRef>false</linkXRef> 
-                </configuration>
-                <executions>
-                    <execution>
-                        <id>validate</id>
-                        <phase>validate</phase>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                        <goal>jar-no-fork</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
-                <executions>
-                    <execution>
-                    <id>attach-javadocs</id>
-                    <goals>
-                        <goal>jar</goal>
-                    </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
-                <executions>
-                    <execution>
-                        <id>sign-artifacts</id>
-                        <phase>verify</phase>
-                        <goals>
-                            <goal>sign</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.6.7</version>
-                <extensions>true</extensions>
-                <configuration>
-                   <serverId>ossrh</serverId>
-                   <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-                   <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                    <verbose>true</verbose>
+                    <fork>true</fork>
+                    <!--你的jdk地址-->
+                    <executable>D:/installsoft/jdk/bin/javac</executable>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-checkstyle-plugin</artifactId>
-                <version>3.1.0</version>
-                <configuration>
-                    <configLocation>checkstyle.xml</configLocation>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
+
+
+
 </project>
